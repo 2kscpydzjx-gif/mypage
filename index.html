@@ -155,7 +155,7 @@
     align-items: center;
     color: #fff;
     font-weight: 400;
-    font-size: 9 px;
+    font-size: 9px;
     letter-spacing: -0.1px;
     white-space: nowrap;
     line-height: 1;
@@ -225,7 +225,7 @@
   .plus-menu-dim {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,.18);
+    background: rgba(0,0,0,.28);
     opacity: 0;
     transition: opacity .22s ease;
     z-index: 0;
@@ -325,7 +325,7 @@
     align-items: center;
     color: #fff;
     font-weight: 400;
-    font-size: 9 px;
+    font-size: 9px;
     letter-spacing: -0.1px;
     white-space: nowrap;
     line-height: 1;
@@ -426,6 +426,60 @@
     background: transparent;
     touch-action: pan-y;
   }
+
+  /* ===== PIN SCREEN ===== */
+  .pin-screen {
+    z-index: 300;
+  }
+
+  .pin-dots {
+    position: absolute;
+    top: 32.9%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 18px;
+    z-index: 320;
+  }
+
+  .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: .9;
+    transition: background .15s ease, opacity .15s ease;
+  }
+
+  .dot.filled {
+    background: #000;
+    opacity: 1;
+  }
+
+  .pin-key {
+    position: absolute;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 321;
+  }
+
+  .k1 { left: 12.5%; top: 40.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k2 { left: 39.7%; top: 40.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k3 { left: 66.9%; top: 40.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+
+  .k4 { left: 12.5%; top: 54.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k5 { left: 39.7%; top: 54.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k6 { left: 66.9%; top: 54.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+
+  .k7 { left: 12.5%; top: 67.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k8 { left: 39.7%; top: 67.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k9 { left: 66.9%; top: 67.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+
+  .k0   { left: 39.7%; top: 81.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .kdel { left: 72.0%; top: 83.0%; width: 11.0%; height: 6.0%; border-radius: 18px; }
 </style>
 </head>
 <body>
@@ -433,7 +487,34 @@
 <div class="page">
   <div class="screen" id="screen">
 
-    <div class="main-screen" id="mainScreen">
+    <!-- PIN SCREEN -->
+    <div class="main-screen pin-screen" id="pinScreen">
+      <img src="pin_menu.png" alt="PIN Screen" class="main-bg">
+
+      <div class="pin-dots">
+        <div class="dot" id="dot0"></div>
+        <div class="dot" id="dot1"></div>
+        <div class="dot" id="dot2"></div>
+        <div class="dot" id="dot3"></div>
+      </div>
+
+      <button class="pin-key k1" data-num="1" aria-label="1"></button>
+      <button class="pin-key k2" data-num="2" aria-label="2"></button>
+      <button class="pin-key k3" data-num="3" aria-label="3"></button>
+
+      <button class="pin-key k4" data-num="4" aria-label="4"></button>
+      <button class="pin-key k5" data-num="5" aria-label="5"></button>
+      <button class="pin-key k6" data-num="6" aria-label="6"></button>
+
+      <button class="pin-key k7" data-num="7" aria-label="7"></button>
+      <button class="pin-key k8" data-num="8" aria-label="8"></button>
+      <button class="pin-key k9" data-num="9" aria-label="9"></button>
+
+      <button class="pin-key k0" data-num="0" aria-label="0"></button>
+      <button class="pin-key kdel" id="pinDeleteBtn" aria-label="Delete"></button>
+    </div>
+
+    <div class="main-screen hidden" id="mainScreen">
       <img src="bg.png" alt="Background" class="main-bg">
 
       <div class="ticker-wrapper" id="tickerWrapper">
@@ -526,6 +607,16 @@
   const cardArea = document.getElementById('cardArea');
   const tickerWrapper = document.getElementById('tickerWrapper');
 
+  const pinScreen = document.getElementById('pinScreen');
+  const pinDeleteBtn = document.getElementById('pinDeleteBtn');
+  const pinKeys = document.querySelectorAll('.pin-key[data-num]');
+  const pinDots = [
+    document.getElementById('dot0'),
+    document.getElementById('dot1'),
+    document.getElementById('dot2'),
+    document.getElementById('dot3')
+  ];
+
   const mainScreen = document.getElementById('mainScreen');
   const servicesScreen = document.getElementById('servicesScreen');
   const jobsScreen = document.getElementById('jobsScreen');
@@ -556,6 +647,58 @@
 
   const mainTickerTrack = document.getElementById('mainTickerTrack');
   const documentTickerTrack = document.getElementById('documentTickerTrack');
+
+  let pinValue = '';
+  const correctPIN = '1234';
+  const maxPINLength = 4;
+
+  function renderPinDots() {
+    pinDots.forEach((dot, index) => {
+      dot.classList.toggle('filled', index < pinValue.length);
+    });
+  }
+
+  function resetPin() {
+    pinValue = '';
+    renderPinDots();
+  }
+
+  function unlockApp() {
+    pinScreen.classList.add('hidden');
+    showMain();
+  }
+
+  function checkPin() {
+    if (pinValue === correctPIN) {
+      unlockApp();
+    } else {
+      resetPin();
+    }
+  }
+
+  function addPinDigit(num) {
+    if (pinValue.length >= maxPINLength) return;
+    pinValue += String(num);
+    renderPinDots();
+
+    if (pinValue.length === maxPINLength) {
+      setTimeout(checkPin, 120);
+    }
+  }
+
+  function removePinDigit() {
+    if (!pinValue.length) return;
+    pinValue = pinValue.slice(0, -1);
+    renderPinDots();
+  }
+
+  pinKeys.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      addPinDigit(btn.dataset.num);
+    });
+  });
+
+  pinDeleteBtn.addEventListener('click', removePinDigit);
 
   function hideAllScreens() {
     mainScreen.classList.add('hidden');
@@ -685,6 +828,7 @@
 
   cardArea.addEventListener('click', () => {
     if (
+      pinScreen.classList.contains('hidden') &&
       !mainScreen.classList.contains('hidden') &&
       updateLayer.classList.contains('hidden') &&
       plusMenuLayer.classList.contains('hidden')
@@ -707,7 +851,11 @@
   plusBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!mainScreen.classList.contains('hidden') && updateLayer.classList.contains('hidden')) {
+    if (
+      pinScreen.classList.contains('hidden') &&
+      !mainScreen.classList.contains('hidden') &&
+      updateLayer.classList.contains('hidden')
+    ) {
       if (plusMenuLayer.classList.contains('hidden')) {
         openPlusMenu();
       } else {
@@ -781,6 +929,10 @@
   document.addEventListener('DOMContentLoaded', () => {
     updateTickerText();
     closePlusMenu(true);
+    resetPin();
+    hideAllScreens();
+    mainScreen.classList.add('hidden');
+    pinScreen.classList.remove('hidden');
   });
 </script>
 
