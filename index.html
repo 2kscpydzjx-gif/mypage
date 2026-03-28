@@ -213,7 +213,6 @@
     z-index: 40;
   }
 
-  /* НОВЕ PNG МЕНЮ */
   .plus-menu-layer {
     position: absolute;
     inset: 0;
@@ -433,7 +432,6 @@
     touch-action: pan-y;
   }
 
-  /* ===== PIN SCREEN ===== */
   .pin-screen {
     z-index: 300;
   }
@@ -493,8 +491,12 @@
 <div class="page">
   <div class="screen" id="screen">
 
+    <div class="main-screen" id="loadingScreen">
+      <img src="golovna.png" alt="Loading screen" class="main-bg">
+    </div>
+
     <!-- PIN SCREEN -->
-    <div class="main-screen pin-screen" id="pinScreen">
+    <div class="main-screen pin-screen hidden" id="pinScreen">
       <img src="pin_menu.png" alt="PIN Screen" class="main-bg">
 
       <div class="pin-dots">
@@ -546,7 +548,6 @@
 
       <div class="plus-btn" id="plusBtn" aria-label="Open actions"></div>
 
-      <!-- НОВЕ PNG-МЕНЮ -->
       <div class="plus-menu-layer hidden" id="plusMenuLayer">
         <div class="plus-menu-dim"></div>
         <img src="menu-plus.png" alt="Меню плюс" class="plus-menu-image">
@@ -612,7 +613,7 @@
   const card = document.getElementById('card');
   const cardArea = document.getElementById('cardArea');
   const tickerWrapper = document.getElementById('tickerWrapper');
-
+  const loadingScreen = document.getElementById('loadingScreen');
   const pinScreen = document.getElementById('pinScreen');
   const pinDeleteBtn = document.getElementById('pinDeleteBtn');
   const pinKeys = document.querySelectorAll('.pin-key[data-num]');
@@ -674,6 +675,11 @@
     showMain();
   }
 
+  function showPinScreen() {
+    loadingScreen.classList.add('hidden');
+    pinScreen.classList.remove('hidden');
+  }
+
   function checkPin() {
     if (pinValue === correctPIN) {
       unlockApp();
@@ -707,6 +713,8 @@
   pinDeleteBtn.addEventListener('click', removePinDigit);
 
   function hideAllScreens() {
+    loadingScreen.classList.add('hidden');
+    pinScreen.classList.add('hidden');
     mainScreen.classList.add('hidden');
     servicesScreen.classList.add('hidden');
     jobsScreen.classList.add('hidden');
@@ -937,8 +945,14 @@
     closePlusMenu(true);
     resetPin();
     hideAllScreens();
+
+    loadingScreen.classList.remove('hidden');
+    pinScreen.classList.add('hidden');
     mainScreen.classList.add('hidden');
-    pinScreen.classList.remove('hidden');
+
+    setTimeout(() => {
+      showPinScreen();
+    }, 2500);
   });
 </script>
 
